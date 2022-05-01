@@ -12,12 +12,15 @@ const Songs = () => {
   const [query, setQuery] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  const host = process.env.RAPIDAPI_HOST || ''
+  const key = process.env.RAPIDAPI_KEY || ''
+
   const options = {
     method: 'GET',
     url: 'https://genius-song-lyrics1.p.rapidapi.com/search',
     headers: {
-      'X-RapidAPI-Host': process.env.RAPIDAPI_HOST,
-      'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+      'X-RapidAPI-Host': host,
+      'X-RapidAPI-Key': key,
     },
     params: {
       q: query,
@@ -37,8 +40,8 @@ const Songs = () => {
       axios
         .get('https://genius-song-lyrics1.p.rapidapi.com/search', {
           headers: {
-            'X-RapidAPI-Host': process.env.RAPIDAPI_HOST,
-            'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+            'X-RapidAPI-Host': host,
+            'X-RapidAPI-Key': key,
           },
           params: {
             q: router.query.search,
@@ -116,7 +119,7 @@ const Songs = () => {
           </h2>
 
           {searchResult.length > 0 &&
-            searchResult.map((item) => {
+            searchResult.map((item: any) => {
               return (
                 <Link href={`/song/${item.result.id}`} key={item.result.id}>
                   <Box className="mb-4 flex cursor-pointer">
