@@ -1,86 +1,144 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
+// import type { NextPage } from 'next'
+import axios from 'axios'
+import { useEffect, useState } from 'react'
+import Box from '@mui/material/Box'
+import TextField from '@mui/material/TextField'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import CircularProgress from '@mui/material/CircularProgress'
 
-const Home: NextPage = () => {
+const Songs = () => {
+  const [searchResult, setSearchResult] = useState([])
+  const [query, setQuery] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const options = {
+    method: 'GET',
+    url: 'https://genius-song-lyrics1.p.rapidapi.com/search',
+    headers: {
+      'X-RapidAPI-Host': process.env.RAPIDAPI_HOST,
+      'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+    },
+    params: {
+      q: query,
+    },
+  }
+
+  const handleChangeQuery = (q: string) => {
+    setQuery(q)
+  }
+
+  const router = useRouter()
+
+  useEffect(() => {
+    if (router.query.search) {
+      setIsLoading(true)
+      setSearchResult([])
+      axios
+        .get('https://genius-song-lyrics1.p.rapidapi.com/search', {
+          headers: {
+            'X-RapidAPI-Host': process.env.RAPIDAPI_HOST,
+            'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+          },
+          params: {
+            q: router.query.search,
+          },
+        })
+        .then(function (response) {
+          setIsLoading(false)
+
+          setSearchResult(response.data.response.hits)
+        })
+        .catch(function (error) {
+          setIsLoading(false)
+          console.error(error)
+        })
+    }
+  }, [router.query.search])
+
+  const submitSearch = (e: any) => {
+    e.preventDefault()
+
+    router.replace({
+      href: '/',
+      query: {
+        search: query,
+      },
+    })
+
+    setIsLoading(true)
+    setSearchResult([])
+    axios
+      .request(options)
+      .then(function (response) {
+        setIsLoading(false)
+
+        setSearchResult(response.data.response.hits)
+      })
+      .catch(function (error) {
+        setIsLoading(false)
+        console.error(error)
+      })
+  }
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center py-2">
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+    <Box className="flex flex-col items-center p-8">
+      <h1 className="mb-8 text-4xl">Search any song lyrics...</h1>
 
-      <main className="flex w-full flex-1 flex-col items-center justify-center px-20 text-center">
-        <h1 className="text-6xl font-bold">
-          Welcome to{' '}
-          <a className="text-blue-600" href="https://nextjs.org">
-            Next.js!
-          </a>
-        </h1>
+      <Box
+        component="form"
+        sx={{
+          '& > :not(style)': { m: 1, width: '25ch' },
+        }}
+        noValidate
+        autoComplete="off"
+        onSubmit={submitSearch}
+      >
+        <TextField
+          id="outlined-basic"
+          placeholder="Search..."
+          variant="outlined"
+          value={query}
+          onChange={(e) => handleChangeQuery(e.target.value)}
+        />
+      </Box>
 
-        <p className="mt-3 text-2xl">
-          Get started by editing{' '}
-          <code className="rounded-md bg-gray-100 p-3 font-mono text-lg">
-            pages/index.tsx
-          </code>
-        </p>
+      {isLoading && (
+        <Box className="mt-8 flex justify-center">
+          <CircularProgress />
+        </Box>
+      )}
 
-        <div className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full">
-          <a
-            href="https://nextjs.org/docs"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Documentation &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Find in-depth information about Next.js features and its API.
-            </p>
-          </a>
+      {searchResult.length > 0 && (
+        <Box className="self-start">
+          <h2 className="mb-4 text-xl font-semibold">
+            Search result for '{router.query.search}'
+          </h2>
 
-          <a
-            href="https://nextjs.org/learn"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Learn &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Learn about Next.js in an interactive course with quizzes!
-            </p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Examples &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Discover and deploy boilerplate example Next.js projects.
-            </p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
-          >
-            <h3 className="text-2xl font-bold">Deploy &rarr;</h3>
-            <p className="mt-4 text-xl">
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className="flex h-24 w-full items-center justify-center border-t">
-        <a
-          className="flex items-center justify-center gap-2"
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-        </a>
-      </footer>
-    </div>
+          {searchResult.length > 0 &&
+            searchResult.map((item) => {
+              return (
+                <Link href={`/song/${item.result.id}`} key={item.result.id}>
+                  <Box className="mb-4 flex cursor-pointer">
+                    <img
+                      src={item.result.header_image_thumbnail_url}
+                      alt=""
+                      className="mr-4 h-16 w-16 rounded-md"
+                    />
+                    <Box>
+                      <p className="text-lg font-medium">{item.result.title}</p>
+                      <p className="text-gray-400">
+                        {item.result.artist_names}
+                      </p>
+                    </Box>
+                  </Box>
+                </Link>
+              )
+            })}
+        </Box>
+      )}
+    </Box>
   )
 }
 
-export default Home
+export default Songs
